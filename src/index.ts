@@ -10,6 +10,8 @@ import { initFirebaseAdmin } from './config/firebase-admin'
 import { errorHandler } from './middleware/errorHandler'
 import { jobRoutes } from './routes/jobRoutes'
 import { userRoutes } from './routes/userRoutes'
+import { profileRoutes } from './routes/profileRoutes'
+import { coverLetterRoutes } from './routes/coverLetterRoutes'
 
 dotenv.config()
 
@@ -46,8 +48,10 @@ async function main(): Promise<void> {
 
   app.get('/health', (_req, res) => res.json({ ok: true }))
 
+  app.use('/api/users/profile', profileRoutes)
   app.use('/api/users', userRoutes)
   app.use('/api/jobs', jobRoutes)
+  app.use('/api/cover-letter', coverLetterRoutes)
 
   app.use(errorHandler)
 
