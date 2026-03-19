@@ -24,7 +24,40 @@ function mustGetEnv(name: string): string {
   return value
 }
 
-async function main(): Promise<void> {
+const app = express()
+
+app.disable('x-powered-by')
+// Prevent 304 responses (ETag) for JSON API to avoid stale UI in browsers.
+app.set('etag', false)
+app.use(helmet())
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL ?? true,
+    credentials: true,
+  })
+)
+app.use((_req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store')
+  next()
+})
+app.use(express.json({ limit: '1mb' }))
+app.use(morgan('dev'))
+
+app.get('/health', (_req, res) => res.json({ ok: true }))
+
+app.use('/api/users/profile', profileRoutes)
+app.use('/api/users', userRoutes)
+app.use('/api/jobs', jobRoutes)
+app.use('/api/cover-letter', coverLetterRoutes)
+app.use('/api/analytics', analyticsRoutes)
+app.use('/api/contacts', contactRoutes)
+app.use('/api/notifications', notificationRoutes)
+
+app.use(errorHandler)
+
+let isInitialized = false;
+async function initializeApp(): Promise<void> {
+  if (isInitialized) return;
   initFirebaseAdmin()
   
   const cronService = await import('./services/cronService');
@@ -32,38 +65,17 @@ async function main(): Promise<void> {
   
   const mongoUri = mustGetEnv('MONGODB_URI')
   await connectDb(mongoUri)
+  isInitialized = true;
+}
 
-  const app = express()
+// 1) Initialize DB, Cron, and Firebase safely
+initializeApp().catch((err: unknown) => {
+  // eslint-disable-next-line no-console
+  console.error('Failed to initialize server dependencies', err)
+})
 
-  app.disable('x-powered-by')
-  // Prevent 304 responses (ETag) for JSON API to avoid stale UI in browsers.
-  app.set('etag', false)
-  app.use(helmet())
-  app.use(
-    cors({
-      origin: process.env.CLIENT_URL ?? true,
-      credentials: true,
-    })
-  )
-  app.use((_req, res, next) => {
-    res.setHeader('Cache-Control', 'no-store')
-    next()
-  })
-  app.use(express.json({ limit: '1mb' }))
-  app.use(morgan('dev'))
-
-  app.get('/health', (_req, res) => res.json({ ok: true }))
-
-  app.use('/api/users/profile', profileRoutes)
-  app.use('/api/users', userRoutes)
-  app.use('/api/jobs', jobRoutes)
-  app.use('/api/cover-letter', coverLetterRoutes)
-  app.use('/api/analytics', analyticsRoutes)
-  app.use('/api/contacts', contactRoutes)
-  app.use('/api/notifications', notificationRoutes)
-
-  app.use(errorHandler)
-
+// 2) If not running on Vercel, start the server normally (for local dev)
+if (!process.env.VERCEL) {
   const port = Number(process.env.PORT ?? 5000)
   app.listen(port, () => {
     // eslint-disable-next-line no-console
@@ -71,9 +83,5 @@ async function main(): Promise<void> {
   })
 }
 
-main().catch((err: unknown) => {
-  // eslint-disable-next-line no-console
-  console.error('Failed to start server', err)
-  process.exit(1)
-})
-
+// 3) Export the app for Vercel Serverless Functions
+export default app;
