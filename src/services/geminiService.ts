@@ -146,3 +146,77 @@ ${
     );
   }
 }
+
+export async function generateInterviewQuestions(
+  jobTitle: string,
+  jobDescription: string,
+  company: string,
+  userSkills: string[],
+): Promise<
+  Array<{
+    id: string;
+    question: string;
+    category: string;
+    difficulty: string;
+    hint: string;
+    userAnswer: string;
+    isAnswered: boolean;
+    source: string;
+  }>
+> {
+  try {
+    const genAI = initializeGemini();
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+    const prompt = `
+You are an expert technical recruiter and interview coach.
+
+Generate 15 highly relevant interview questions for this position:
+- Company: ${company}
+- Role: ${jobTitle}
+- Key Requirements from JD: ${jobDescription.slice(0, 1000)}
+- Candidate Skills: ${userSkills.join(", ")}
+
+Return ONLY a JSON array with exactly this structure (no markdown, no commentary):
+[
+  {
+    "question": "string",
+    "category": "technical" | "behavioral" | "company" | "roleSpecific",
+    "difficulty": "easy" | "medium" | "hard",
+    "hint": "brief hint on how to approach this question"
+  }
+]
+
+Distribution: 5 technical, 4 behavioral (STAR format), 3 role-specific, 3 company-specific.
+Technical questions must be specific to the technologies mentioned in the JD.
+Behavioral questions must be role-appropriate, not generic.
+Company questions must reference the company name specifically.
+
+IMPORTANT: Generate all questions and hints in Bahasa Indonesia (Indonesian language).
+`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+
+    const cleaned = text.replace(/```json|```/g, "").trim();
+    const questions = JSON.parse(cleaned);
+
+    return questions.map((q: any, i: number) => ({
+      id: `q_${Date.now()}_${i}`,
+      question: q.question,
+      category: q.category,
+      difficulty: q.difficulty,
+      hint: q.hint || "",
+      userAnswer: "",
+      isAnswered: false,
+      source: "ai_generated",
+    }));
+  } catch (err: any) {
+    if (err instanceof HttpError) throw err;
+    console.error("Gemini Interview Prep Error:", err);
+    throw new HttpError(
+      500,
+      `Failed to generate interview questions: ${err.message || "Unknown error"}`,
+    );
+  }
+}

@@ -11,6 +11,9 @@ import {
   updateJobStatus,
 } from "../services/jobService";
 import { HttpError } from "../types";
+import { generateInterviewQuestions } from "../services/geminiService";
+import { UserModel } from "../models/User";
+import { JobModel } from "../models/Job";
 
 const jobStatusSchema = z.enum([
   "wishlist",
@@ -30,6 +33,7 @@ const createJobSchema = z.object({
   location: z.string().max(120).optional(),
   jobUrl: z.string().url().optional(),
   description: z.string().max(5000).optional(),
+  notes: z.string().max(10000).optional(),
   appliedDate: z.string().datetime().optional(),
   deadline: z.string().datetime().optional(),
   tags: z.array(z.string().min(1).max(32)).max(20).optional(),
@@ -38,6 +42,17 @@ const createJobSchema = z.object({
 const updateJobSchema = createJobSchema.partial().extend({
   status: jobStatusSchema.optional(),
   priority: jobPrioritySchema.optional(),
+  offerDetails: z
+    .object({
+      offeredSalary: z.string().optional(),
+      negotiatedSalary: z.string().optional(),
+      offerDeadline: z.string().datetime().optional(),
+      negotiationNotes: z.string().max(5000).optional(),
+      decision: z
+        .enum(["pending", "accepted", "declined", "negotiating"])
+        .optional(),
+    })
+    .optional(),
 });
 
 const updateStatusSchema = z.object({
@@ -97,6 +112,7 @@ export async function createJobHandler(
     location?: string;
     jobUrl?: string;
     description?: string;
+    notes?: string;
     appliedDate?: Date;
     deadline?: Date;
     tags?: string[];
@@ -110,6 +126,7 @@ export async function createJobHandler(
   if (input.location) payload.location = input.location;
   if (input.jobUrl) payload.jobUrl = input.jobUrl;
   if (input.description) payload.description = input.description;
+  if (input.notes) payload.notes = input.notes;
   const appliedDate = parseDateOrUndefined(input.appliedDate);
   if (appliedDate) payload.appliedDate = appliedDate;
   const deadline = parseDateOrUndefined(input.deadline);
@@ -136,19 +153,7 @@ export async function updateJobHandler(
   const userId = requireUserId(req);
   const input = updateJobSchema.parse(req.body);
   const jobId = requireJobId(req);
-  const patch: {
-    company?: string;
-    position?: string;
-    status?: JobStatus;
-    priority?: JobPriority;
-    salary?: string;
-    location?: string;
-    jobUrl?: string;
-    description?: string;
-    appliedDate?: Date;
-    deadline?: Date;
-    tags?: string[];
-  } = {};
+  const patch: Record<string, any> = {};
   if (typeof input.company === "string") patch.company = input.company;
   if (typeof input.position === "string") patch.position = input.position;
   if (input.status) patch.status = input.status;
@@ -158,9 +163,11 @@ export async function updateJobHandler(
   if (typeof input.jobUrl === "string") patch.jobUrl = input.jobUrl;
   if (typeof input.description === "string")
     patch.description = input.description;
+  if (typeof input.notes === "string") patch.notes = input.notes;
   if (input.appliedDate) patch.appliedDate = parseDateStrict(input.appliedDate);
   if (input.deadline) patch.deadline = parseDateStrict(input.deadline);
   if (input.tags) patch.tags = input.tags;
+  if (input.offerDetails) patch.offerDetails = input.offerDetails;
 
   const updated = await updateJob(userId, jobId, patch);
   res.json({ job: updated });
@@ -192,4 +199,88 @@ export async function statsSummaryHandler(
   const userId = requireUserId(req);
   const summary = await getStatsSummary(userId);
   res.json(summary);
+}
+
+/* ──── Interview Prep Handlers ──── */
+
+export async function generateInterviewPrepHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = requireUserId(req);
+  const jobId = requireJobId(req);
+  const job = await getJobById(userId, jobId);
+
+  const user = await UserModel.findOne({ firebaseUid: userId }).lean();
+  const skills: string[] = user?.profile?.skills ?? [];
+
+  const questions = await generateInterviewQuestions(
+    job.position,
+    job.description ?? "",
+    job.company,
+    skills,
+  );
+
+  await JobModel.findOneAndUpdate(
+    { _id: jobId, userId },
+    { $push: { interviewQuestions: { $each: questions } } },
+  );
+
+  res.json({ questions });
+}
+
+export async function saveInterviewQuestionsHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = requireUserId(req);
+  const jobId = requireJobId(req);
+
+  const schema = z.array(
+    z.object({
+      id: z.string(),
+      question: z.string(),
+      category: z.enum(["technical", "behavioral", "company", "roleSpecific"]),
+      difficulty: z.enum(["easy", "medium", "hard"]),
+      hint: z.string().optional(),
+      userAnswer: z.string().optional(),
+      isAnswered: z.boolean().optional(),
+      source: z.enum(["ai_generated", "user_added"]).optional(),
+    }),
+  );
+
+  const questions = schema.parse(req.body);
+  await JobModel.findOneAndUpdate(
+    { _id: jobId, userId },
+    { $set: { interviewQuestions: questions } },
+  );
+  res.json({ ok: true });
+}
+
+export async function updateInterviewAnswerHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = requireUserId(req);
+  const jobId = requireJobId(req);
+  const questionId = req.params.qId;
+  if (!questionId) throw new HttpError(400, "Missing question id");
+
+  const schema = z.object({
+    userAnswer: z.string().optional(),
+    isAnswered: z.boolean().optional(),
+  });
+  const input = schema.parse(req.body);
+
+  const update: Record<string, any> = {};
+  if (typeof input.userAnswer === "string")
+    update["interviewQuestions.$.userAnswer"] = input.userAnswer;
+  if (typeof input.isAnswered === "boolean")
+    update["interviewQuestions.$.isAnswered"] = input.isAnswered;
+
+  await JobModel.findOneAndUpdate(
+    { _id: jobId, userId, "interviewQuestions.id": questionId },
+    { $set: update },
+  );
+  res.json({ ok: true });
 }

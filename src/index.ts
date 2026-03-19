@@ -12,6 +12,9 @@ import { jobRoutes } from './routes/jobRoutes'
 import { userRoutes } from './routes/userRoutes'
 import { profileRoutes } from './routes/profileRoutes'
 import { coverLetterRoutes } from './routes/coverLetterRoutes'
+import { analyticsRoutes } from './routes/analyticsRoutes'
+import { contactRoutes } from './routes/contactRoutes'
+import { notificationRoutes } from './routes/notificationRoutes'
 
 dotenv.config()
 
@@ -52,6 +55,9 @@ async function main(): Promise<void> {
   app.use('/api/users', userRoutes)
   app.use('/api/jobs', jobRoutes)
   app.use('/api/cover-letter', coverLetterRoutes)
+  app.use('/api/analytics', analyticsRoutes)
+  app.use('/api/contacts', contactRoutes)
+  app.use('/api/notifications', notificationRoutes)
 
   app.use(errorHandler)
 

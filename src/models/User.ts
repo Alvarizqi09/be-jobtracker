@@ -44,6 +44,18 @@ const UserProfileSchema = new Schema(
   { _id: false }
 )
 
+const PreferencesSchema = new Schema(
+  {
+    theme: { type: String, enum: ['dark', 'light', 'system'], default: 'dark' },
+    staleThresholdDays: { type: Number, default: 14 },
+    notifyDeadlines: { type: Boolean, default: true },
+    notifyFollowUps: { type: Boolean, default: true },
+    notifyStale: { type: Boolean, default: true },
+    hasCompletedOnboarding: { type: Boolean, default: false },
+  },
+  { _id: false }
+)
+
 const UserSchema = new Schema(
   {
     firebaseUid: { type: String, required: true, unique: true, index: true },
@@ -51,6 +63,7 @@ const UserSchema = new Schema(
     displayName: { type: String },
     photoURL: { type: String },
     profile: { type: UserProfileSchema, default: {} },
+    preferences: { type: PreferencesSchema, default: {} },
   },
   { timestamps: true }
 )
