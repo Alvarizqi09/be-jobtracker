@@ -48,3 +48,14 @@ export async function dismissNotificationHandler(
   await notifService.dismissNotification(userId, notifId);
   res.status(204).send();
 }
+
+import { generateDailyNotifications } from "../services/cronService";
+
+export async function triggerCronHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  // We can restrict this to admins later, but allow for testing now
+  await generateDailyNotifications();
+  res.json({ message: "Cron triggered successfully" });
+}

@@ -26,7 +26,10 @@ function mustGetEnv(name: string): string {
 
 async function main(): Promise<void> {
   initFirebaseAdmin()
-
+  
+  const cronService = await import('./services/cronService');
+  cronService.startCronJobs();
+  
   const mongoUri = mustGetEnv('MONGODB_URI')
   await connectDb(mongoUri)
 
