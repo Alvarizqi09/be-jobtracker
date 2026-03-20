@@ -15,6 +15,7 @@ import { coverLetterRoutes } from './routes/coverLetterRoutes'
 import { analyticsRoutes } from './routes/analyticsRoutes'
 import { contactRoutes } from './routes/contactRoutes'
 import { notificationRoutes } from './routes/notificationRoutes'
+import { authRoutes } from './routes/authRoutes'
 
 dotenv.config()
 
@@ -52,6 +53,7 @@ app.use('/api/cover-letter', coverLetterRoutes)
 app.use('/api/analytics', analyticsRoutes)
 app.use('/api/contacts', contactRoutes)
 app.use('/api/notifications', notificationRoutes)
+app.use('/api/auth', authRoutes)
 
 app.use(errorHandler)
 
