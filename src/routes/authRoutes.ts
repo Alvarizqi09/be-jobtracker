@@ -11,9 +11,11 @@ const FRONTEND_URL = process.env.CLIENT_URL || 'http://localhost:3000';
 
 // We determine the redirect URI dynamically or fallback to env.
 // Vercel deployment has VERIFY_URL or NEXT_PUBLIC equivalent, but we can rely on standard env variables.
-const REDIRECT_URI = process.env.NODE_ENV === 'production' 
-  ? 'https://be-jobtracker.vercel.app/api/auth/google/callback'
-  : 'http://localhost:5000/api/auth/google/callback';
+const REDIRECT_URI = process.env.BACKEND_URL
+  ? `${process.env.BACKEND_URL}/api/auth/google/callback`
+  : process.env.NODE_ENV === 'production' 
+    ? 'https://be-jobtracker.onrender.com/api/auth/google/callback'
+    : 'http://localhost:5000/api/auth/google/callback';
 
 const oauth2Client = new OAuth2Client(
   GOOGLE_CLIENT_ID,
