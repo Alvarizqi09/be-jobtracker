@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import { JobModel } from "../models/Job";
-import type { JobPriority, JobStatus } from "../types";
+import type { JobPriority, JobStatus, TestType } from "../types";
 import { HttpError } from "../types";
 
 export interface ActivityEventDTO {
@@ -20,6 +20,7 @@ export interface JobDTO {
   status: JobStatus;
   priority: JobPriority;
   salary?: string;
+  testType?: TestType;
   location?: string;
   jobUrl?: string;
   description?: string;
@@ -41,6 +42,7 @@ export interface CreateJobInput {
   status: JobStatus;
   priority: JobPriority;
   salary?: string;
+  testType?: TestType;
   location?: string;
   jobUrl?: string;
   description?: string;
@@ -80,6 +82,7 @@ function toJobDTO(doc: {
   status: JobStatus;
   priority: JobPriority;
   salary?: string | null;
+  testType?: string | null;
   location?: string | null;
   jobUrl?: string | null;
   description?: string | null;
@@ -106,6 +109,7 @@ function toJobDTO(doc: {
     updatedAt: doc.updatedAt.toISOString(),
   };
   if (doc.salary) dto.salary = doc.salary;
+  if (doc.testType) dto.testType = doc.testType as TestType;
   if (doc.location) dto.location = doc.location;
   if (doc.jobUrl) dto.jobUrl = doc.jobUrl;
   if (doc.description) dto.description = doc.description;
@@ -129,6 +133,7 @@ type JobLean = {
   status: JobStatus;
   priority: JobPriority;
   salary?: string | null;
+  testType?: string | null;
   location?: string | null;
   jobUrl?: string | null;
   description?: string | null;
@@ -336,6 +341,7 @@ export interface JobStatsSummary {
 const STATUSES: JobStatus[] = [
   "wishlist",
   "applied",
+  "online_test",
   "interview",
   "offer",
   "rejected",
@@ -366,6 +372,7 @@ export async function getStatsSummary(
   const byStatus: Record<JobStatus, number> = {
     wishlist: 0,
     applied: 0,
+    online_test: 0,
     interview: 0,
     offer: 0,
     rejected: 0,

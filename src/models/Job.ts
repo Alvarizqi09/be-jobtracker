@@ -73,6 +73,7 @@ const JobSchema = new Schema(
       enum: [
         "wishlist",
         "applied",
+        "online_test",
         "interview",
         "offer",
         "rejected",
@@ -86,6 +87,10 @@ const JobSchema = new Schema(
       default: "medium",
     },
     salary: { type: String },
+    testType: {
+      type: String,
+      enum: ["online_test", "psikotest", "intelligence", "technical", "assessment", "other"],
+    },
     location: { type: String },
     jobUrl: { type: String },
     description: { type: String },

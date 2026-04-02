@@ -1,6 +1,6 @@
 import type { Response } from "express";
 import { z } from "zod";
-import type { AuthenticatedRequest, JobPriority, JobStatus } from "../types";
+import type { AuthenticatedRequest, JobPriority, JobStatus, TestType } from "../types";
 import {
   createJob,
   deleteJob,
@@ -18,17 +18,20 @@ import { JobModel } from "../models/Job";
 const jobStatusSchema = z.enum([
   "wishlist",
   "applied",
+  "online_test",
   "interview",
   "offer",
   "rejected",
 ]);
 const jobPrioritySchema = z.enum(["low", "medium", "high"]);
+const testTypeSchema = z.enum(["online_test", "psikotest", "intelligence", "technical", "assessment", "other"]);
 
 const createJobSchema = z.object({
   company: z.string().min(1).max(120),
   position: z.string().min(1).max(120),
   status: jobStatusSchema,
   priority: jobPrioritySchema,
+  testType: testTypeSchema.optional(),
   salary: z.string().max(120).optional(),
   location: z.string().max(120).optional(),
   jobUrl: z.string().url().optional(),
@@ -113,6 +116,7 @@ export async function createJobHandler(
     jobUrl?: string;
     description?: string;
     notes?: string;
+    testType?: TestType;
     appliedDate?: Date;
     deadline?: Date;
     tags?: string[];
@@ -127,6 +131,7 @@ export async function createJobHandler(
   if (input.jobUrl) payload.jobUrl = input.jobUrl;
   if (input.description) payload.description = input.description;
   if (input.notes) payload.notes = input.notes;
+  if (input.testType) payload.testType = input.testType as TestType;
   const appliedDate = parseDateOrUndefined(input.appliedDate);
   if (appliedDate) payload.appliedDate = appliedDate;
   const deadline = parseDateOrUndefined(input.deadline);
@@ -164,6 +169,7 @@ export async function updateJobHandler(
   if (typeof input.description === "string")
     patch.description = input.description;
   if (typeof input.notes === "string") patch.notes = input.notes;
+  if (input.testType) patch.testType = input.testType;
   if (input.appliedDate) patch.appliedDate = parseDateStrict(input.appliedDate);
   if (input.deadline) patch.deadline = parseDateStrict(input.deadline);
   if (input.tags) patch.tags = input.tags;

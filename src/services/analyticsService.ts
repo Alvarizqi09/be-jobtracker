@@ -64,6 +64,7 @@ export interface TimelineEventResult {
 const STATUS_ORDER: JobStatus[] = [
   "wishlist",
   "applied",
+  "online_test",
   "interview",
   "offer",
   "rejected",
@@ -99,7 +100,7 @@ export async function getJobStats(userId: string): Promise<JobStatsResult> {
   // Applied = not wishlist
   const appliedJobs = jobs.filter((j) => j.status !== "wishlist");
   const respondedJobs = jobs.filter(
-    (j) => !["wishlist", "applied"].includes(j.status),
+    (j) => !["wishlist", "applied", "online_test"].includes(j.status),
   );
   const interviewJobs = jobs.filter((j) => j.status === "interview" || j.status === "offer");
   const offerJobs = jobs.filter((j) => j.status === "offer");
@@ -205,7 +206,7 @@ export async function getFunnelData(
 
   const applied = jobs.filter((j) => j.status !== "wishlist").length;
   const responded = jobs.filter(
-    (j) => !["wishlist", "applied"].includes(j.status),
+    (j) => !["wishlist", "applied", "online_test"].includes(j.status),
   ).length;
   const interviewed = jobs.filter(
     (j) => j.status === "interview" || j.status === "offer",
