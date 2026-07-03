@@ -7,7 +7,7 @@ const router = Router();
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || '';
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || '';
-const FRONTEND_URL = process.env.CLIENT_URL || 'http://localhost:3000';
+const FRONTEND_URL = ((process.env.CLIENT_URL || 'http://localhost:3000').split(',')[0] ?? 'http://localhost:3000').trim();
 
 // We determine the redirect URI dynamically or fallback to env.
 // Vercel deployment has VERIFY_URL or NEXT_PUBLIC equivalent, but we can rely on standard env variables.
