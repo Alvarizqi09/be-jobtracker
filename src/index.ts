@@ -31,9 +31,25 @@ app.disable('x-powered-by')
 // Prevent 304 responses (ETag) for JSON API to avoid stale UI in browsers.
 app.set('etag', false)
 app.use(helmet())
+const allowedOrigins = (process.env.CLIENT_URL ?? '')
+  .split(',')
+  .map((s) => s.trim())
+  .filter(Boolean)
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL ?? true,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (e.g. mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true)
+      if (
+        allowedOrigins.length === 0 ||
+        allowedOrigins.includes(origin) ||
+        origin.startsWith('http://localhost')
+      ) {
+        return callback(null, true)
+      }
+      callback(new Error(`CORS not allowed for origin: ${origin}`))
+    },
     credentials: true,
   })
 )
