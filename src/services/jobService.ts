@@ -19,7 +19,8 @@ export interface JobDTO {
   position: string;
   status: JobStatus;
   priority: JobPriority;
-  salary?: string;
+  salaryMin?: string;
+  salaryMax?: string;
   testType?: TestType;
   location?: string;
   jobUrl?: string;
@@ -41,7 +42,8 @@ export interface CreateJobInput {
   position: string;
   status: JobStatus;
   priority: JobPriority;
-  salary?: string;
+  salaryMin?: string;
+  salaryMax?: string;
   testType?: TestType;
   location?: string;
   jobUrl?: string;
@@ -81,7 +83,8 @@ function toJobDTO(doc: {
   position: string;
   status: JobStatus;
   priority: JobPriority;
-  salary?: string | null;
+  salaryMin?: string | null;
+  salaryMax?: string | null;
   testType?: string | null;
   location?: string | null;
   jobUrl?: string | null;
@@ -108,7 +111,8 @@ function toJobDTO(doc: {
     createdAt: doc.createdAt.toISOString(),
     updatedAt: doc.updatedAt.toISOString(),
   };
-  if (doc.salary) dto.salary = doc.salary;
+  if (doc.salaryMin) dto.salaryMin = doc.salaryMin;
+  if (doc.salaryMax) dto.salaryMax = doc.salaryMax;
   if (doc.testType) dto.testType = doc.testType as TestType;
   if (doc.location) dto.location = doc.location;
   if (doc.jobUrl) dto.jobUrl = doc.jobUrl;
@@ -132,7 +136,8 @@ type JobLean = {
   position: string;
   status: JobStatus;
   priority: JobPriority;
-  salary?: string | null;
+  salaryMin?: string | null;
+  salaryMax?: string | null;
   testType?: string | null;
   location?: string | null;
   jobUrl?: string | null;
@@ -229,7 +234,7 @@ export async function updateJob(
   }
 
   // Log generic edit for other field changes
-  const editFields = ["company", "position", "salary", "location", "jobUrl", "description", "priority"];
+  const editFields = ["company", "position", "salaryMin", "salaryMax", "location", "jobUrl", "description", "priority"];
   const hasOtherEdits = editFields.some((f) => {
     const key = f as keyof UpdateJobInput;
     return input[key] !== undefined && input[key] !== (existing as any)[key];
