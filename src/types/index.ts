@@ -3,6 +3,7 @@ import type { Request } from 'express'
 export type JobStatus = 'wishlist' | 'applied' | 'online_test' | 'interview' | 'offer' | 'rejected'
 export type JobPriority = 'low' | 'medium' | 'high'
 export type TestType = 'online_test' | 'psikotest' | 'intelligence' | 'technical' | 'assessment' | 'other'
+export type JobWorkArrangement = 'wfh' | 'wfo' | 'hybrid'
 
 export interface AuthedUser {
   uid: string

@@ -1,5 +1,5 @@
 import { Schema, model, type InferSchemaType } from "mongoose";
-import type { JobPriority, JobStatus } from "../types";
+import type { JobPriority, JobStatus, JobWorkArrangement } from "../types";
 
 const ActivityLogEntrySchema = new Schema(
   {
@@ -93,6 +93,10 @@ const JobSchema = new Schema(
       enum: ["online_test", "psikotest", "intelligence", "technical", "assessment", "other"],
     },
     location: { type: String },
+    workArrangement: {
+      type: String,
+      enum: ["wfh", "wfo", "hybrid"] satisfies JobWorkArrangement[],
+    },
     jobUrl: { type: String },
     description: { type: String },
     notes: { type: String },
