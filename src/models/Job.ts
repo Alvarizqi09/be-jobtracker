@@ -86,7 +86,8 @@ const JobSchema = new Schema(
       enum: ["low", "medium", "high"] satisfies JobPriority[],
       default: "medium",
     },
-    salary: { type: String },
+    salaryMin: { type: String },
+    salaryMax: { type: String },
     testType: {
       type: String,
       enum: ["online_test", "psikotest", "intelligence", "technical", "assessment", "other"],

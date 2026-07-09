@@ -174,8 +174,9 @@ export async function getJobStats(userId: string): Promise<JobStatsResult> {
   // Salary distribution
   const salaryBuckets: Record<string, number> = {};
   for (const j of jobs) {
-    if (j.salary) {
-      const bucket = getSalaryBucket(j.salary);
+    const salaryValue = j.salaryMax || j.salaryMin;
+    if (salaryValue) {
+      const bucket = getSalaryBucket(salaryValue);
       salaryBuckets[bucket] = (salaryBuckets[bucket] || 0) + 1;
     }
   }

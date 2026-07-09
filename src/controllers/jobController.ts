@@ -32,7 +32,8 @@ const createJobSchema = z.object({
   status: jobStatusSchema,
   priority: jobPrioritySchema,
   testType: testTypeSchema.optional(),
-  salary: z.string().max(120).optional(),
+  salaryMin: z.string().max(120).optional(),
+  salaryMax: z.string().max(120).optional(),
   location: z.string().max(120).optional(),
   jobUrl: z.string().url().optional(),
   description: z.string().max(5000).optional(),
@@ -111,7 +112,8 @@ export async function createJobHandler(
     position: string;
     status: JobStatus;
     priority: JobPriority;
-    salary?: string;
+    salaryMin?: string;
+    salaryMax?: string;
     location?: string;
     jobUrl?: string;
     description?: string;
@@ -126,7 +128,8 @@ export async function createJobHandler(
     status: input.status,
     priority: input.priority,
   };
-  if (input.salary) payload.salary = input.salary;
+  if (input.salaryMin) payload.salaryMin = input.salaryMin;
+  if (input.salaryMax) payload.salaryMax = input.salaryMax;
   if (input.location) payload.location = input.location;
   if (input.jobUrl) payload.jobUrl = input.jobUrl;
   if (input.description) payload.description = input.description;
@@ -163,7 +166,8 @@ export async function updateJobHandler(
   if (typeof input.position === "string") patch.position = input.position;
   if (input.status) patch.status = input.status;
   if (input.priority) patch.priority = input.priority;
-  if (typeof input.salary === "string") patch.salary = input.salary;
+  if (typeof input.salaryMin === "string") patch.salaryMin = input.salaryMin;
+  if (typeof input.salaryMax === "string") patch.salaryMax = input.salaryMax;
   if (typeof input.location === "string") patch.location = input.location;
   if (typeof input.jobUrl === "string") patch.jobUrl = input.jobUrl;
   if (typeof input.description === "string")
