@@ -3,6 +3,7 @@ import { z } from "zod";
 import type { AuthenticatedRequest, JobPriority, JobStatus, TestType } from "../types";
 import {
   createJob,
+  deleteAllJobs,
   deleteJob,
   getJobById,
   getStatsSummary,
@@ -205,6 +206,15 @@ export async function deleteJobHandler(
   const userId = requireUserId(req);
   await deleteJob(userId, requireJobId(req));
   res.status(204).send();
+}
+
+export async function deleteAllJobsHandler(
+  req: AuthenticatedRequest,
+  res: Response,
+): Promise<void> {
+  const userId = requireUserId(req);
+  const deletedCount = await deleteAllJobs(userId);
+  res.json({ deletedCount });
 }
 
 export async function statsSummaryHandler(

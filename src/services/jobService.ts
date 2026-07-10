@@ -323,6 +323,11 @@ export async function deleteJob(userId: string, jobId: string): Promise<void> {
   if (!deleted) throw new HttpError(404, "Job not found");
 }
 
+export async function deleteAllJobs(userId: string): Promise<number> {
+  const result = await JobModel.deleteMany({ userId });
+  return result.deletedCount;
+}
+
 export async function addActivityLog(
   userId: string,
   jobId: string,

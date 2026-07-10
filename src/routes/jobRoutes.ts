@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/authMiddleware";
 import {
   createJobHandler,
+  deleteAllJobsHandler,
   deleteJobHandler,
   generateInterviewPrepHandler,
   getJobHandler,
@@ -20,6 +21,7 @@ jobRoutes.use(requireAuth);
 jobRoutes.get("/stats/summary", statsSummaryHandler);
 jobRoutes.get("/", listJobsHandler);
 jobRoutes.post("/", createJobHandler);
+jobRoutes.delete("/", deleteAllJobsHandler);
 jobRoutes.get("/:id", getJobHandler);
 jobRoutes.put("/:id", updateJobHandler);
 jobRoutes.patch("/:id/status", updateJobStatusHandler);
