@@ -7,7 +7,12 @@ const ContactSchema = new Schema(
     role: { type: String, required: true, trim: true },
     company: { type: String, required: true, trim: true },
     email: { type: String, trim: true },
-    linkedin: { type: String, trim: true },
+    meetingLink: { type: String, trim: true },
+    meetingType: {
+      type: String,
+      enum: ["google_meet", "zoom", "teams", "offline", "other"],
+    },
+    meetingLocationUrl: { type: String, trim: true },
     phone: { type: String, trim: true },
     linkedJobIds: { type: [String], default: [] },
     notes: { type: String },

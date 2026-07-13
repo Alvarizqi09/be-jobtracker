@@ -21,7 +21,9 @@ export async function createContact(
     role: string;
     company: string;
     email?: string;
-    linkedin?: string;
+    meetingLink?: string;
+    meetingType?: string;
+    meetingLocationUrl?: string;
     phone?: string;
     linkedJobIds?: string[];
     notes?: string;
@@ -42,7 +44,9 @@ export async function updateContact(
     role: string;
     company: string;
     email: string;
-    linkedin: string;
+    meetingLink: string;
+    meetingType: string;
+    meetingLocationUrl: string;
     phone: string;
     linkedJobIds: string[];
     notes: string;
