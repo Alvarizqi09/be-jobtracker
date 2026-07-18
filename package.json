@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "@types/multer": "^2.2.0",
     "@types/node-cron": "^3.0.11",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
@@ -22,6 +23,7 @@
     "helmet": "^8.1.0",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.1",
+    "multer": "^2.2.0",
     "node-cron": "^4.2.1",
     "zod": "^4.1.5"
   },

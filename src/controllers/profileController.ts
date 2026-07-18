@@ -1,6 +1,7 @@
 import { Response } from 'express'
 import { AuthenticatedRequest, HttpError } from '../types'
 import { UserModel } from '../models/User'
+import { parseCvWithGemini, MAX_CV_SIZE_BYTES } from '../services/cvParserService'
 
 export const getProfile = async (req: AuthenticatedRequest, res: Response) => {
   if (!req.user) throw new HttpError(401, 'Unauthorized')
@@ -43,4 +44,25 @@ export const updateEducation = async (req: AuthenticatedRequest, res: Response) 
   )
   if (!user) throw new HttpError(404, 'User not found')
   res.json({ profile: user.profile })
+}
+
+export const parseCV = async (req: AuthenticatedRequest, res: Response) => {
+  if (!req.user) throw new HttpError(401, 'Unauthorized')
+
+  const file = (req as any).file as Express.Multer.File | undefined
+  if (!file) {
+    throw new HttpError(400, 'No file uploaded. Please upload a PDF file.')
+  }
+
+  if (file.mimetype !== 'application/pdf') {
+    throw new HttpError(400, 'Invalid file type. Only PDF files are accepted.')
+  }
+
+  if (file.size > MAX_CV_SIZE_BYTES) {
+    throw new HttpError(400, 'File too large. Maximum size is 4MB.')
+  }
+
+  const parsedProfile = await parseCvWithGemini(file.buffer)
+
+  res.json({ profile: parsedProfile })
 }
